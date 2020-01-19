@@ -4,8 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const cartBtn = document.getElementById('cart');
   const wishlistBtn = document.getElementById('wishlist');
   const cart = document.querySelector('.cart');
-
   const goodsWrapper = document.querySelector('.goods-wrapper');
+  const category = document.querySelector('.category');
 
   const createCardGoods = (id, title, price, img) => {
      const card = document.createElement('div');
@@ -29,10 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
        return card;
   };
 
-  goodsWrapper.appendChild(createCardGoods(1, 'Дартс', 2000, 'img/temp/Archer.jpg'));
-  goodsWrapper.appendChild(createCardGoods(2, 'Фламинго', 3000, 'img/temp/Flamingo.jpg'));
-  goodsWrapper.appendChild(createCardGoods(2, 'Носки', 50, 'img/temp/Socks.jpg'));
-
   const closeCart = (event) => {
     const target = event.target;
     if (target === cart || target.classList.contains('cart-close') || event.keyCode === 27)
@@ -46,11 +42,37 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keydown', closeCart);
   };
 
+  const getGoods = (handler, filter) => {
+    goodsWrapper.textContent = "";
+    fetch("db/db.json")
+      .then(response => response.json())
+      .then(filter)
+      .then(handler)
+  };
+
+  const renderCard = (item) => {
+    item.forEach(({ id, title, price, imgMin }) => {
+      goodsWrapper.appendChild(createCardGoods(id, title, price, imgMin));
+    })
+  };
+
+  const randomSort = (items) => items.sort(() => Math.random() - 0.5);
+
+  const choiceCategory = event => {
+    event.preventDefault();
+    const target = event.target;
+
+    if (target.classList.contains('category-item')) {
+      const category = target.dataset.category;
+      getGoods(renderCard, goods =>
+        goods.filter(item =>
+          item.category.includes(category)))
+    }
+  };
+
   cartBtn.addEventListener('click', openCart);
   cart.addEventListener('click', closeCart);
+  category.addEventListener('click', choiceCategory);
 
-  document.addEventListener('keypress', (e) => {
-    if (e.keyCode === 27)
-      cart.style.display = '';
-  });
+  getGoods(renderCard, randomSort);
 });
